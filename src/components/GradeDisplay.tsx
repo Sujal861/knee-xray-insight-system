@@ -68,9 +68,7 @@ const GradeDisplay = ({ grade, confidence, probabilities }: GradeDisplayProps) =
               value={prob * 100} 
               className={cn(
                 "h-2", 
-                grade === i ? "bg-gray-200" : "bg-gray-100"
-              )}
-              indicatorClassName={cn(
+                grade === i ? "bg-gray-200" : "bg-gray-100",
                 grade === i ? "bg-medical-600" : "bg-medical-300"
               )}
             />

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +24,6 @@ const Index = () => {
     setSelectedFile(file);
     setResult(null);
     
-    // Create preview URL
     const reader = new FileReader();
     reader.onload = (e) => {
       setImagePreview(e.target?.result as string);
@@ -70,7 +68,7 @@ const Index = () => {
       setIsAnalyzing(false);
     }
   };
-  
+
   const getGradeSeverityText = (grade: number) => {
     const severities = ["No", "Doubtful", "Mild", "Moderate", "Severe"];
     return severities[grade];
@@ -224,7 +222,7 @@ const Index = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Activity className="h-5 w-5 text-medical-600" />
+                <Info className="h-5 w-5 text-medical-600" />
                 Detection System Info
               </CardTitle>
             </CardHeader>
