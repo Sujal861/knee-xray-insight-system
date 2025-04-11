@@ -9,16 +9,17 @@ interface FileUploadProps {
   onFileSelected: (file: File) => void;
   allowedTypes: string[];
   maxSizeMB?: number;
+  isUploading?: boolean;
 }
 
 const FileUpload = ({ 
   onFileSelected, 
   allowedTypes, 
-  maxSizeMB = 10 
+  maxSizeMB = 10,
+  isUploading = false
 }: FileUploadProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -107,6 +108,7 @@ const FileUpload = ({
         onChange={handleFileInputChange}
         accept={allowedTypes.join(',')}
         className="hidden"
+        disabled={isUploading}
       />
       
       <div
@@ -115,9 +117,10 @@ const FileUpload = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'dropzone',
-          isDragging ? 'active' : '',
-          file ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-primary hover:bg-primary/5'
+          'p-8 border-2 border-dashed rounded-lg transition-all cursor-pointer',
+          isDragging ? 'border-primary bg-primary/5' : '',
+          file ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-primary hover:bg-primary/5',
+          isUploading ? 'opacity-70 cursor-not-allowed' : ''
         )}
       >
         {!file ? (
@@ -134,7 +137,7 @@ const FileUpload = ({
                 Accepted formats: {allowedTypes.join(', ')} | Max size: {maxSizeMB}MB
               </p>
             </div>
-            <Button type="button" className="mt-4">
+            <Button type="button" className="mt-4" disabled={isUploading}>
               Browse Files
             </Button>
           </div>
@@ -155,9 +158,19 @@ const FileUpload = ({
               onClick={clearFile} 
               className="p-1 rounded-full hover:bg-gray-200"
               aria-label="Remove file"
+              disabled={isUploading}
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>
+          </div>
+        )}
+        
+        {isUploading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded-lg">
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+              <p className="mt-2 font-medium text-gray-700">Processing...</p>
+            </div>
           </div>
         )}
       </div>
