@@ -59,6 +59,94 @@ const mockPredictions: Prediction[] = [
   }
 ];
 
+// Create a more deterministic but varied prediction based on image characteristics
+const generatePrediction = async (file: File) => {
+  // Create a deterministic but varied seed based on file properties
+  let seed = 0;
+  
+  // Use file size as part of the seed
+  seed += file.size % 100;
+  
+  // Use last modified timestamp as part of the seed
+  seed += Math.floor(file.lastModified / 1000) % 100;
+  
+  // Use filename as additional seed component
+  seed += Array.from(file.name).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 100;
+  
+  // Read a small part of the file to add more uniqueness
+  try {
+    // Read first few bytes of the file to add to uniqueness
+    const arrayBuffer = await file.slice(0, 1024).arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < Math.min(20, bytes.length); i++) {
+      seed += bytes[i];
+    }
+  } catch (e) {
+    // If we can't read the file, just continue with the filename-based seed
+    console.log("Couldn't read file content for more unique prediction", e);
+  }
+  
+  // Normalize seed to 0-1 range
+  const randomValue = (seed % 100) / 100;
+  
+  // Determine grade based on normalized seed
+  let grade: number;
+  if (randomValue < 0.20) {
+    grade = 0;
+  } else if (randomValue < 0.40) {
+    grade = 1;
+  } else if (randomValue < 0.60) {
+    grade = 2;
+  } else if (randomValue < 0.80) {
+    grade = 3;
+  } else {
+    grade = 4;
+  }
+  
+  // Create probabilities with highest for the selected grade
+  const baseProbabilities = [0.05, 0.05, 0.05, 0.05, 0.05];
+  
+  // Add extra probability to the chosen grade
+  const extraProb = 0.5 + (randomValue * 0.3);
+  baseProbabilities[grade] += extraProb;
+  
+  // Distribute remaining probability
+  const remainingProb = 1 - baseProbabilities.reduce((a, b) => a + b, 0);
+  
+  // Distribute the remaining across all grades with some randomness
+  const normalizedProbabilities = baseProbabilities.map((prob, i) => {
+    const adjustment = i === grade ? 0.6 : 0.1;
+    return prob + (remainingProb * adjustment * (1 + Math.sin(seed + i)));
+  });
+  
+  // Normalize to ensure sum is 1
+  const sum = normalizedProbabilities.reduce((a, b) => a + b, 0);
+  const finalProbabilities = normalizedProbabilities.map(p => p / sum);
+  
+  const interpretations = [
+    "No signs of osteoarthritis. Joint appears healthy.",
+    "Doubtful narrowing of joint space. Possible osteophytes.",
+    "Definite osteophytes. Possible narrowing of joint space.",
+    "Moderate multiple osteophytes. Definite narrowing of joint space. Some sclerosis. Possible deformity.",
+    "Large osteophytes. Marked narrowing of joint space. Severe sclerosis. Definite deformity."
+  ];
+  
+  return {
+    grade: `Grade ${grade}`,
+    grade_index: grade,
+    confidence: finalProbabilities[grade],
+    interpretation: interpretations[grade],
+    probabilities: {
+      'Grade 0': finalProbabilities[0],
+      'Grade 1': finalProbabilities[1],
+      'Grade 2': finalProbabilities[2],
+      'Grade 3': finalProbabilities[3],
+      'Grade 4': finalProbabilities[4]
+    },
+    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
+  };
+};
+
 // Create a mock implementation of the API service
 export const register = async (username: string, email: string, password: string) => {
   // Simulate network delay
@@ -128,39 +216,8 @@ export const predictImage = async (file: File) => {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  // Mock a random prediction result
-  const gradeIndex = Math.floor(Math.random() * 5);
-  const confidence = 0.5 + Math.random() * 0.5; // Random confidence between 0.5 and 1.0
-  
-  // Generate probabilities that sum to 1.0
-  let probabilities: Record<string, number> = {};
-  let remaining = 1.0 - confidence;
-  
-  for (let i = 0; i < 5; i++) {
-    if (i === gradeIndex) {
-      probabilities[`Grade ${i}`] = confidence;
-    } else {
-      const prob = remaining / 4;
-      probabilities[`Grade ${i}`] = prob;
-    }
-  }
-  
-  const interpretations = [
-    "No signs of osteoarthritis. Joint appears healthy.",
-    "Doubtful narrowing of joint space. Possible osteophytes.",
-    "Definite osteophytes. Possible narrowing of joint space.",
-    "Moderate multiple osteophytes. Definite narrowing of joint space. Some sclerosis. Possible deformity.",
-    "Large osteophytes. Marked narrowing of joint space. Severe sclerosis. Definite deformity."
-  ];
-  
-  const result = {
-    grade: `Grade ${gradeIndex}`,
-    grade_index: gradeIndex,
-    confidence,
-    interpretation: interpretations[gradeIndex],
-    probabilities,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
-  };
+  // Generate prediction based on image content and properties
+  const result = await generatePrediction(file);
   
   // Add to mock predictions
   const userId = parseInt(localStorage.getItem('user_id') || '0');
@@ -168,8 +225,12 @@ export const predictImage = async (file: File) => {
     mockPredictions.push({
       id: mockPredictions.length + 1,
       user_id: userId,
-      ...result,
-      date: result.timestamp
+      grade: result.grade,
+      grade_index: result.grade_index,
+      confidence: result.confidence,
+      probabilities: result.probabilities,
+      date: result.timestamp,
+      interpretation: result.interpretation
     });
   }
   
