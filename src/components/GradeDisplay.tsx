@@ -69,7 +69,7 @@ const GradeDisplay = ({ grade, confidence, probabilities }: GradeDisplayProps) =
               className={cn(
                 "h-2", 
                 grade === i ? "bg-gray-200" : "bg-gray-100",
-                grade === i ? "bg-medical-600" : "bg-medical-300"
+                grade === i ? "[&>div]:bg-medical-600" : "[&>div]:bg-medical-300"
               )}
             />
           </div>
