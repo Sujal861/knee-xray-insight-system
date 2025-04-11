@@ -75,6 +75,18 @@ export default {
 					'800': '#075985',
 					'900': '#0c4a6e',
 				},
+				dashboard: {
+					'primary': '#4C84FF',
+					'secondary': '#6E8192',
+					'success': '#66CB9F',
+					'warning': '#FDBF5E',
+					'danger': '#FF7271',
+					'background': '#F7F8FC',
+					'card': '#FFFFFF',
+					'text': '#2B3674',
+					'textLight': '#A3AED0',
+					'border': '#E9EDF7',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
