@@ -63,7 +63,7 @@ const Dashboard = () => {
       },
       date: "May 11, 2025",
       time: "10:00 AM",
-      status: "confirmed",
+      status: "confirmed" as const,
       type: "Checkup",
     },
     {
@@ -74,7 +74,7 @@ const Dashboard = () => {
       },
       date: "May 11, 2025",
       time: "11:30 AM",
-      status: "pending",
+      status: "pending" as const,
       type: "Consultation",
     },
     {
@@ -85,7 +85,7 @@ const Dashboard = () => {
       },
       date: "May 11, 2025",
       time: "2:15 PM",
-      status: "confirmed",
+      status: "confirmed" as const,
       type: "Follow-up",
     },
     {
@@ -96,7 +96,7 @@ const Dashboard = () => {
       },
       date: "May 11, 2025",
       time: "3:30 PM",
-      status: "canceled",
+      status: "canceled" as const,
       type: "Checkup",
     },
   ];
